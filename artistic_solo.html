@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artistic Stopwatch</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --primary-dark: #3a5a8a;
+            --secondary: #f8f9fa;
+            --text: #333;
+            --text-light: #666;
+            --border: #e0e0e0;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+            --warning-bg: #dc3545;
+            --warning-text: #fff;
+            --success-bg: #28a745;
+            --success-text: #fff;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f7fa;
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 420px;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        
+        .title {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        
+        .time-display {
+            font-size: 2.8rem;
+            font-weight: 300;
+            font-family: 'Roboto Mono', monospace;
+            color: var(--text);
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: var(--secondary);
+            border-radius: 8px;
+            letter-spacing: 1px;
+        }
+        
+        .score-display {
+            font-size: 1.5rem;
+            font-weight: 600;
+            font-family: 'Roboto Mono', monospace;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .button {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            background-color: var(--primary);
+            transition: var(--transition);
+            min-width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .button:active {
+            transform: translateY(0);
+        }
+        
+        .button.secondary {
+            background-color: #6c757d;
+        }
+        
+        .button.secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .button.lap {
+            background-color: #17a2b8;
+        }
+        
+        .button.lap:hover {
+            background-color: #138496;
+        }
+        
+        .results {
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+        
+        .section {
+            margin-top: 1.5rem;
+            background: var(--secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            color: var(--primary);
+            font-weight: 600;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .section-title i {
+            font-size: 1.2rem;
+        }
+        
+        .item {
+            font-size: 0.95rem;
+            color: var(--text);
+            margin: 0.6rem 0;
+            padding: 0.8rem;
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+        
+        .item.warning {
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+        }
+        
+        .item.success {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+        }
+        
+        .item.warning .item-label,
+        .item.warning .item-value,
+        .item.success .item-label,
+        .item.success .item-value {
+            color: var(--warning-text);
+        }
+        
+        .item-label {
+            font-weight: 500;
+            color: var(--primary);
+        }
+        
+        .item-value {
+            font-family: 'Roboto Mono', monospace;
+            font-weight: 500;
+        }
+        
+        .empty-state {
+            color: var(--text-light);
+            font-style: italic;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+                width: 95%;
+            }
+            
+            .time-display {
+                font-size: 2.2rem;
+            }
+            
+            .score-display {
+                font-size: 1.3rem;
+            }
+            
+            .button-container {
+                flex-wrap: wrap;
+            }
+            
+            .button {
+                flex: 1 1 100px;
+                padding: 0.7rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">
+            <i class="fas fa-stopwatch"></i> Artistic Stopwatch
+        </h1>
+        <div id="mainTime" class="time-display">00:00.00</div>
+        <div id="scoreDisplay" class="score-display">0/5</div>
+        
+        <div class="button-container">
+            <button class="button" onclick="startStop()">
+                <i class="fas fa-play" id="playIcon"></i> <span id="startStopText">Start</span>
+            </button>
+            <button class="button lap" id="lapButton" onclick="lap()">
+                <i class="fas fa-flag"></i> Lap
+            </button>
+            <button class="button secondary" onclick="reset()">
+                <i class="fas fa-redo"></i> Reset
+            </button>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="section" id="asanaSection">
+                <div class="section-title">
+                    <i class="fas fa-spa"></i> Asana Durations
+                </div>
+                <div class="empty-state">No asana times recorded yet</div>
+            </div>
+            <div class="section" id="transitionSection">
+                <div class="section-title">
+                    <i class="fas fa-arrows-alt-h"></i> Transition Durations
+                </div>
+                <div class="empty-state">No transition times recorded yet</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let startTime = 0;
+        let previousLapTime = 0;
+        let elapsedTime = 0;
+        let interval;
+        let running = false;
+        let lapTimes = [];
+        let score = 0;
+        const MAX_SCORE = 5;
+        const POINTS_PER_ASANA = 0.5;
+        const MIN_ASANA_DURATION = 5000; // 5 seconds in milliseconds
+
+        function startStop() {
+            if (running) {
+                clearInterval(interval);
+                running = false;
+                document.getElementById('playIcon').className = 'fas fa-play';
+                document.getElementById('startStopText').textContent = 'Start';
+            } else {
+                startTime = Date.now() - elapsedTime;
+                previousLapTime = startTime;
+                interval = setInterval(updateTime, 10);
+                running = true;
+                document.getElementById('playIcon').className = 'fas fa-pause';
+                document.getElementById('startStopText').textContent = 'Pause';
+            }
+        }
+
+        function updateTime() {
+            elapsedTime = Date.now() - startTime;
+            document.getElementById("mainTime").textContent = formatMainTime(elapsedTime);
+        }
+
+        function formatMainTime(time) {
+            let minutes = Math.floor(time / 60000);
+            let seconds = Math.floor((time % 60000) / 1000);
+            let milliseconds = Math.floor((time % 1000) / 10);
+            return (minutes < 10 ? '0' : '') + minutes + ':' + 
+                   (seconds < 10 ? '0' : '') + seconds + '.' + 
+                   (milliseconds < 10 ? '0' : '') + milliseconds;
+        }
+
+        function formatLapTime(time) {
+            let seconds = Math.floor((time % 60000) / 1000);
+            let milliseconds = Math.floor((time % 1000) / 10);
+            return (seconds < 10 ? '0' : '') + seconds + '.' + 
+                   (milliseconds < 10 ? '0' : '') + milliseconds;
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('scoreDisplay').textContent = 
+                `${score.toFixed(1)}/${MAX_SCORE}`;
+        }
+
+        function lap() {
+            if (running) {
+                let currentTime = Date.now();
+                let lapDuration = currentTime - previousLapTime;
+                previousLapTime = currentTime;
+                
+                lapTimes.push(lapDuration);
+                
+                // Check if this is an asana lap (even index) and update score if duration ≥5s
+                if (lapTimes.length % 2 === 0 && lapDuration >= MIN_ASANA_DURATION) {
+                    score += POINTS_PER_ASANA;
+                    // Cap the score at maximum
+                    score = Math.min(score, MAX_SCORE);
+                    updateScoreDisplay();
+                }
+                
+                updateResults();
+                indicateLapButton();
+            }
+        }
+
+        function reset() {
+            clearInterval(interval);
+            running = false;
+            startTime = 0;
+            elapsedTime = 0;
+            previousLapTime = 0;
+            lapTimes = [];
+            score = 0;
+            updateScoreDisplay();
+            document.getElementById("mainTime").textContent = "00:00.00";
+            document.getElementById('playIcon').className = 'fas fa-play';
+            document.getElementById('startStopText').textContent = 'Start';
+            
+            // Reset sections with empty states
+            document.getElementById('asanaSection').innerHTML = `
+                <div class="section-title">
+                    <i class="fas fa-spa"></i> Asana Durations
+                </div>
+                <div class="empty-state">No asana times recorded yet</div>
+            `;
+            
+            document.getElementById('transitionSection').innerHTML = `
+                <div class="section-title">
+                    <i class="fas fa-arrows-alt-h"></i> Transition Durations
+                </div>
+                <div class="empty-state">No transition times recorded yet</div>
+            `;
+        }
+
+        function updateResults() {
+            const asanaSection = document.getElementById('asanaSection');
+            const transitionSection = document.getElementById('transitionSection');
+            
+            // Clear existing content but keep titles
+            asanaSection.innerHTML = `
+                <div class="section-title">
+                    <i class="fas fa-spa"></i> Asana Durations
+                </div>
+            `;
+            
+            transitionSection.innerHTML = `
+                <div class="section-title">
+                    <i class="fas fa-arrows-alt-h"></i> Transition Durations
+                </div>
+            `;
+            
+            let asanaCounter = 1;
+            let transitionCounter = 1;
+
+            lapTimes.forEach((time, index) => {
+                let formattedTime = formatLapTime(time);
+                let item = document.createElement('div');
+                item.className = 'item';
+                
+                if ((index + 1) % 2 === 0) {  // Asanas are even indices
+                    // Check if asana was held for at least 5 seconds
+                    if (time >= MIN_ASANA_DURATION) {
+                        item.classList.add('success');
+                    } else {
+                        item.classList.add('warning');
+                    }
+                    
+                    item.innerHTML = `
+                        <span class="item-label">Asana ${asanaCounter++}</span>
+                        <span class="item-value">${formattedTime}s</span>
+                    `;
+                    asanaSection.appendChild(item);
+                } else {  // Transitions are odd indices
+                    item.innerHTML = `
+                        <span class="item-label">Transition ${transitionCounter++}</span>
+                        <span class="item-value">${formattedTime}s</span>
+                    `;
+                    transitionSection.appendChild(item);
+                }
+            });
+            
+            // Add empty state if no items
+            if (asanaSection.querySelectorAll('.item').length === 0) {
+                asanaSection.innerHTML += `<div class="empty-state">No asana times recorded yet</div>`;
+            }
+            if (transitionSection.querySelectorAll('.item').length === 0) {
+                transitionSection.innerHTML += `<div class="empty-state">No transition times recorded yet</div>`;
+            }
+        }
+
+        function indicateLapButton() {
+            const lapButton = document.getElementById('lapButton');
+            lapButton.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                lapButton.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Initialize score display
+        updateScoreDisplay();
+    </script>
+</body>
+</html>
